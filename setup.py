@@ -21,7 +21,7 @@ setup(
     ],
     license='MIT License',
     extras_require={
-        'test': ['pytest', 'pytest-cov'],
+        'test': ['pytest', 'pytest-cov', 'flake8'],
         'packaging': ['wheel'],
     }
 )
