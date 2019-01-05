@@ -1,5 +1,6 @@
 # test-with-jenkins-and-circle-ci.py
 
+[![CircleCI](https://circleci.com/gh/tomoh1r/test-with-jenkins-and-circle-ci.py/tree/master.svg?style=svg)](https://circleci.com/gh/tomoh1r/test-with-jenkins-and-circle-ci.py/tree/master)
 [![codecov](https://codecov.io/gh/tomoh1r/test-with-jenkins-and-circle-ci.py/branch/master/graph/badge.svg)](https://codecov.io/gh/tomoh1r/test-with-jenkins-and-circle-ci.py)
 
 * Unit Test with Jenkins.
