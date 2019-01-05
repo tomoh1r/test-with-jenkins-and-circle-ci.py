@@ -3,17 +3,24 @@ version: 2.1
 workflows:
   unit-test:
     jobs:
-      - setup-and-test
-
-orbs:
-  codecov: codecov/codecov@1.0.2
+      - setup-and-test:
+          py_ver: "3.6"
+          codecov_py_ver: "36"
+      - setup-and-test:
+          py_ver: "3.7"
+          codecov_py_ver: "37"
 
 jobs:
   setup-and-test:
+    parameters:
+      py_ver:
+        type: string
+      codecov_py_ver:
+        type: string
     executor:
       name: python
+      py_ver: "<< parameters.py_ver >>"
     steps:
-      - my_restore_cache
       - checkout
       - run:
           command: python -m venv venv
@@ -22,31 +29,25 @@ jobs:
       - run:
           command: ./venv/bin/python -m pip install -e ".[test,packaging]"
       - run:
-          command: ./venv/bin/python -m pytest --junitxml=test-reports/junit.xml --cov=./ex4mple --cov-report=xml:cov.xml
+          command: >-
+            ./venv/bin/python -m pytest
+            --junitxml=test-reports/junit.xml
+            --cov=./ex4mple --cov-report=xml:cov-<< parameters.py_ver >>.xml
       - store_test_results:
           path: test-reports
       - store_artifacts:
           path: test-reports
       - codecov/upload:
-          file: ./cov.xml
-      - my_save_cache
+          file: "./cov-<< parameters.py_ver >>.xml"
+          flags: "python<< parameters.codecov_py_ver >>"
+
+orbs:
+  codecov: codecov/codecov@1.0.2
 
 executors:
   python:
+    parameters:
+      py_ver:
+        type: string
     docker:
-      - image: circleci/python:3.6.8
-
-commands:
-  my_restore_cache:
-    steps:
-      - restore_cache:
-          keys:
-            - twjacc
-
-  my_save_cache:
-    steps:
-      - save_cache:
-          paths:
-            - ~/.cache/pip/
-            - venv
-          key: twjacc
+      - image: "circleci/python:<< parameters.py_ver >>"
