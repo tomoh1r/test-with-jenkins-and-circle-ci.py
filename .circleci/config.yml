@@ -1,9 +1,52 @@
 version: 2.1
 
-orbs:
-    hello: circleci/hello-build@0.0.7
-
 workflows:
-    "Hello Workflow":
-        jobs:
-          - hello/hello-build
+  unit-test:
+    jobs:
+      - setup-and-test
+
+orbs:
+  codecov: codecov/codecov@1.0.2
+
+jobs:
+  setup-and-test:
+    executor:
+      name: python
+    steps:
+      - my_restore_cache
+      - checkout
+      - run:
+          command: python -m venv venv
+      - run:
+          command: ./venv/bin/python -m pip install -U setuptools pip
+      - run:
+          command: ./venv/bin/python -m pip install -e ".[test,codecov,packaging]"
+      - run:
+          command: ./venv/bin/python -m pytest --junitxml=test-reports/junit.xml --cov=./ex4mple --cov-report=xml:cov.xml
+      - store_test_results:
+          path: test-reports
+      - store_artifacts:
+          path: test-reports
+      - codecov/upload:
+          file: ./cov.xml
+      - my_save_cache
+
+executors:
+  python:
+    docker:
+      - image: circleci/python:3.6.8
+
+commands:
+  my_restore_cache:
+    steps:
+      - restore_cache:
+          keys:
+            - twjacc
+
+  my_save_cache:
+    steps:
+      - save_cache:
+          paths:
+            - ~/.cache/pip/
+            - venv
+          key: twjacc
