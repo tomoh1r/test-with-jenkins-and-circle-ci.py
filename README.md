@@ -1,3 +1,4 @@
-# ex-gRPC
+# test-with-jenkins-and-circle-ci.py
 
-wip.
+* Unit Test with Jenkins.
+* Unit Test with CircleCI.
