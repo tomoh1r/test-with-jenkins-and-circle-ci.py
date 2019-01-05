@@ -20,7 +20,7 @@ jobs:
       - run:
           command: ./venv/bin/python -m pip install -U setuptools pip
       - run:
-          command: ./venv/bin/python -m pip install -e ".[test,codecov,packaging]"
+          command: ./venv/bin/python -m pip install -e ".[test,packaging]"
       - run:
           command: ./venv/bin/python -m pytest --junitxml=test-reports/junit.xml --cov=./ex4mple --cov-report=xml:cov.xml
       - store_test_results:
