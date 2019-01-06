@@ -1,17 +1,46 @@
 version: 2.1
 
 workflows:
-  unit-test:
+  unit-test-36:
     jobs:
-      - setup-and-test:
-          py_ver: "3.6"
+      - setup:
+          py_ver: "3.6.8"
+      - test:
+          py_ver: "3.6.8"
           codecov_py_ver: "36"
-      - setup-and-test:
-          py_ver: "3.7"
+          requires:
+            - setup
+  unit-test-37:
+    jobs:
+      - setup:
+          py_ver: "3.7.2"
+      - test:
+          py_ver: "3.7.2"
           codecov_py_ver: "37"
+          requires:
+            - setup
 
 jobs:
-  setup-and-test:
+  setup:
+    parameters:
+      py_ver:
+        type: string
+    executor:
+      name: python
+      py_ver: << parameters.py_ver >>
+    steps:
+      - checkout
+      - my_restore_cache:
+          py_ver: << parameters.py_ver >>
+      - run:
+          command: python -m venv venv
+      - run:
+          command: ./venv/bin/python -m pip install -U setuptools pip
+      - run:
+          command: ./venv/bin/python -m pip install -e ".[test,packaging]"
+      - my_save_cache:
+          py_ver: << parameters.py_ver >>
+  test:
     parameters:
       py_ver:
         type: string
@@ -19,15 +48,11 @@ jobs:
         type: string
     executor:
       name: python
-      py_ver: "<< parameters.py_ver >>"
+      py_ver: << parameters.py_ver >>
     steps:
       - checkout
-      - run:
-          command: python -m venv venv
-      - run:
-          command: ./venv/bin/python -m pip install -U setuptools pip
-      - run:
-          command: ./venv/bin/python -m pip install -e ".[test,packaging]"
+      - my_restore_cache:
+          py_ver: << parameters.py_ver >>
       - run:
           command: >-
             ./venv/bin/python -m pytest
@@ -38,8 +63,10 @@ jobs:
       - store_artifacts:
           path: test-reports
       - codecov/upload:
-          file: "./cov-<< parameters.py_ver >>.xml"
-          flags: "python<< parameters.codecov_py_ver >>"
+          file: ./cov-<< parameters.py_ver >>.xml
+          flags: python<< parameters.codecov_py_ver >>
+      - my_save_cache:
+          py_ver: << parameters.py_ver >>
 
 orbs:
   codecov: codecov/codecov@1.0.2
@@ -50,4 +77,25 @@ executors:
       py_ver:
         type: string
     docker:
-      - image: "circleci/python:<< parameters.py_ver >>"
+      - image: circleci/python:<< parameters.py_ver >>
+
+commands:
+  my_restore_cache:
+    parameters:
+      py_ver:
+        type: string
+    steps:
+      - restore_cache:
+          keys:
+            - twjacc-<< parameters.py_ver >>-{{ checksum "setup.py" }}
+
+  my_save_cache:
+    parameters:
+      py_ver:
+        type: string
+    steps:
+      - save_cache:
+          paths:
+            - ~/.cache/pip/
+            - venv
+          key: twjacc-<< parameters.py_ver >>-{{ checksum "setup.py" }}
